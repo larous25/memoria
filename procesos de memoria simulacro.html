@@ -45,6 +45,12 @@
 			padding: 0;
 			width: 100%;
 		}
+		.matarpro{
+			display: none;
+			height: 85%;
+			margin-top:15%; 
+			width: 100%;
+		}
 		.izquierda{
 			height: 600px;
 		}
@@ -84,6 +90,10 @@
 				<div class="numero">3</div>
 				<div class="numero">4</div>
 			</div>
+			<div class="matarpro">
+				<select name="select" id="select"></select>
+				<button>mata</button>
+			</div>
 		</div>
 		<div class="medio">
 			<h2>Ejecución</h2>
@@ -117,20 +127,33 @@
 	var favor2 = "favor selecione un numero";
 	var favor3 = "¡Ya tienes una letra! Favor intenta con un numero ";
 	var temp = 0, temp2="";
-	var contador=0;
+	var contador=0, contador2 = {
+					"A":0,
+					"B":0,
+					"C":0,
+					"D":0
+				};
 	var color = {
-					"A":"blueviolet",
-					"B":"firebrick",
-					"C":"skyblue",
-					"D":"springgreen"
+					"A":"rgb(138, 43, 226)",
+					"B":"rgb(178, 34, 34",
+					"C":"rgb(135, 206, 235)",
+					"D":"rgb(0, 255, 127)"
 				};
 
+		/* necesario para jquery 
+		esperando a que carge el dom */
 		$(document).ready(function(){
 			var texto = $(".texto");
+			//limpia los textarea
+			$("#ejecucion").val("");
+			$("#espera").val("");
 			var cantidadDivs = $(".memoria > div").size();
 
 			texto.html(favor);
 			
+			/* toma la letra suma uno al 
+			contador cuando el contador suma
+			cuatro desaparecen los numeros  */
 			$(".letra").click(function(e) {
 				if(temp == 0){
 					texto.html(favor2);
@@ -149,32 +172,101 @@
 					texto.html(favor);
 					
 					temp = 0;
-
-					if(cantidadDivs>=numero){ console.log(temp2);
+					contador2[temp2] = numero;
+					/* envia los numeros a espera si no caben en la memoria
+					pinta los div de memoria dependiendo del color del
+					proceso */
+					if(cantidadDivs>=numero){ 
 						cantidadDivs -=numero;
 
 							for (var i = numero-1; i >= 0; i--) {
 								$(".memoria > div ")
 									.eq(cantidadDivs+i)
 									.css({"background":color[temp2],"border":"1px solid white"});
-									console.log(color[temp2]);
 							};
-
+								
 						$("#ejecucion").val(temp2 + "\n" +$("#ejecucion").val());
 					}else{
 						$("#espera").val(temp2 + "\n" +$("#espera").val()); 
 					}
 
+					/* desaparecen los numeros, da las gracias por jugar,
+					muestra el div.matarpro y le envia los procesos en ejecución */
 					if(contador==4){
 						texto.html("¡Gracias por jugar!");
 						$(".numeros").fadeOut(function(){
-							texto.fadeOut("slow");
+							texto.fadeOut("slow",function(){
+								$(".matarpro").show();
+								var temp3 = $("#ejecucion").val().split("\n");
+								for (var i = 0; i < temp3.length; i++) {
+										var option = document.createElement("option");
+										option.value=temp3[i];
+										option.text=temp3[i];
+										$("#select").append(option);
+								};	
+							});
 						});
-							
+						
 					}
 				}else{
 					texto.html(favor);
 				}
+			});
+
+			$("button").click(function(){
+				var temp3 = $("#select").val();
+				//quita la opcion del proceso muerto
+				$("#select option[value='"+temp3+"']").each(function() {
+				    $(this).remove();
+				});
+				/* Busca el color y lo combierte en blanco */
+				for (var i = 0; i < $(".memoria > div ").size(); i++) {
+					if($(".memoria").find("div ").eq(i).css("background-color")==color[temp3]){
+						$(".memoria").find("div ").eq(i).css("background-color","white");
+					}
+				};
+				/* toma los carapteres, elimina el proceso indicado 
+				y devulve a la memoria su espacio*/
+				var temp4 = $("#ejecucion").val().split("\n");
+						var temp5=temp4.indexOf(temp3);
+						temp4.splice(temp5,1);
+						temp4 = String(temp4);
+						temp4 = temp4.replace(",","\n");
+						$("#ejecucion").val(temp4);
+					 cantidadDivs += parseInt(contador2[temp3]);
+					 
+					 /* toam el primer valor de memori */
+					 var ultimo = $("#espera").val().split("\n");
+					 var ultimonum = parseInt(contador2[ultimo[0]]);
+					 var j=0;
+
+					 /* si un proceso en espera cabe en 
+					 la memoria lo pasa a ejecurion */
+					 if(cantidadDivs>=ultimonum){
+					 	cantidadDivs -=ultimonum;
+
+					 	/*hace lo mismo y es lo mismo que el codigo de la linea 228
+					 	deberia hacerlo funcion como muchas cosas =S */
+					 	var temp4 = $("#espera").val().split("\n");
+						var temp5=temp4.indexOf(ultimo[0]);
+						temp4.splice(temp5,1);
+						temp4 = String(temp4);
+						temp4 = temp4.replace(",","\n");
+						$("#espera").val(temp4);
+						$("#ejecucion").val(ultimo[0]+"\n"+$("#ejecucion").val());
+
+							for (var i = $(".memoria > div ").size(); i >= 0; i--) {
+								if(($(".memoria").find("div ").eq(i).css("background-color")=="rgb(255, 255, 255)")|| 
+									($(".memoria").find("div ").eq(i).css("background-color")=="transparent")){
+									$(".memoria").find("div ").eq(i).css("background-color",color[ultimo[0]]);								
+									if(j>=ultimonum-1){
+										break;
+									}
+									j+=1;
+								}
+							};
+
+					 }
 			});
 		});
 	</script>
