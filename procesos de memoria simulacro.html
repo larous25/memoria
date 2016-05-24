@@ -3,108 +3,42 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Procesos de Memoria</title>
-	<style>
-		body{
-			font-size: 20px; 	
-			font-style: oblique;
-		}
-		.contenedor{
-			margin: 0 auto;
-			width: 80%;
-		}
-		.contenedor>div{
-			width: 30%;
-			top:0;
-			float: left;
-			height: 400px;
-		}
-		.derecha{
-			height: 300px;
-		}
-		.derecha > div > div{
-			background: #666;
-			border-radius: 5px;
-			display: inline-block;
-			color: #fff;
-			cursor: pointer;
-			margin-top: 15px;
-			padding: 15px;
-			text-align: center;
-		}
-		.letras{
-			
-		}
-		.numeros{
-
-		}
-		.derecha .texto{
-			background: #fff;
-			cursor: default;
-			height: 50px;
-			margin-top: 50px;
-			padding: 0;
-			width: 100%;
-		}
-		.matarpro{
-			display: none;
-			height: 85%;
-			margin-top:15%; 
-			width: 100%;
-		}
-		.izquierda{
-			height: 600px;
-		}
-		.izquierda .memoria{
-			height: 90%;
-			width: 100%;
-		}
-		.izquierda .memoria>div{
-			border:1px solid black;
-			border-radius:5px; 
-			height: 8%;
-			width: 100%;
-		}
-		.medio > textarea {
-			border:1px solid #e5e5e5;
-			height: 70px;
-			overflow: hidden;
-		}
-	</style>
+	<link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
 	<div class="contenedor">
+		<h2 class="titulo"></h2>
+
 		<div class="derecha">
-			<div class="texto">
-				
-			</div>
+			<h3>Letras</h3>
 			<div class="letras">
-				<div class="letra">A</div>
-				<div class="letra">B</div>
-				<div class="letra">C</div>
-				<div class="letra">D</div>
+				<div class="letra a">A</div>
+				<div class="letra b">B</div>
+				<div class="letra c">C</div>
+				<div class="letra d">D</div>
 			</div>
-			<br/>
+			
+			<h3>Numeros</h3>
 			<div class="numeros">
 				<div class="numero">1</div>
 				<div class="numero">2</div>
 				<div class="numero">3</div>
 				<div class="numero">4</div>
 			</div>
+
 			<div class="matarpro">
 				<select name="select" id="select"></select>
 				<button>mata</button>
 			</div>
 		</div>
-		<div class="medio">
-			<h2>Ejecución</h2>
-			<textarea name="ejecucion" id="ejecucion" cols="30" rows="10">
-				
-			</textarea>
-			<h2>Espera</h2>
-			<textarea name="espera" id="espera" cols="30" rows="10">
-				
-			</textarea>
+
+		<div class="centro">
+			<h3>Ejecución</h3>
+			<div id="ejecucion"></div>
+			<h3>Espera</h3>
+			<div id="espera"></div>
 		</div>
+
 		<div class="izquierda">
 			<h3>Simulación</h3>
 			<div class="memoria">
@@ -121,153 +55,123 @@
 			</div>
 		</div>
 	</div>
-	<script src="jquery-1.9.1.js" type="text/javascript"></script>
+	<script src="./bower_components/jquery/dist/jquery.js" type="text/javascript"></script>
 	<script>
-	var favor = "favor selecione una letra";
-	var favor2 = "favor selecione un numero";
-	var favor3 = "¡Ya tienes una letra! Favor intenta con un numero ";
-	var temp = 0, temp2="";
-	var contador=0, contador2 = {
-					"A":0,
-					"B":0,
-					"C":0,
-					"D":0
-				};
-	var color = {
-					"A":"rgb(138, 43, 226)",
-					"B":"rgb(178, 34, 34",
-					"C":"rgb(135, 206, 235)",
-					"D":"rgb(0, 255, 127)"
-				};
 
-		/* necesario para jquery 
-		esperando a que carge el dom */
+		var proceso = {
+			letra    : '',
+			color    : '',
+			espacio  : 0,
+			restaurar: function(){
+				this.letra   = '';
+				this.color   = '';
+				this.espacio = 0
+			},
+			cargaLetraColor: function(elemento){
+				this.letra   = elemento.text();
+				this.color   = elemento.css('color');
+				elemento.remove();
+			},
+			obtener: function(){
+				return {
+					letra  : this.letra,
+					color  : this.color,
+					espacio: this.espacio
+				};
+			}
+		};
+
+		var memoria = {
+			$elementoM: {},
+			$elementoC: {},
+			tamaño    : 10,
+			procesos  : [],
+			_enEspera : [],
+			_utilizada: function(){
+				var total = 0;
+				for (var i = 0; i < this.procesos.length; i++) {
+					total += this.procesos[i].espacio;
+				}
+				return total;
+			},
+			_añadirProceso: function(proceso){
+				this.procesos.push(proceso);
+				this._pintarM(proceso.espacio, proceso.color);
+			},
+			_añadirEspera: function(proceso){
+				this._enEspera.push(proceso);
+				this._pintarC(proceso);
+			},
+			cargarElementoMemoria:function(elemento){
+				this.$elementoM = elemento;
+			},
+			cargarElementoCache:function(elemento){
+				this.$elementoC = elemento;
+			},
+			asignar: function(proceso){
+				if(this._restante() < proceso.espacio){
+					this._añadirEspera(proceso);
+				}else{
+					this._añadirProceso(proceso);
+				}
+			},
+			_pintarM: function(cantidad, color){
+				for (var i = cantidad-1; i >= 0; i--) {
+					this.$elementoM.eq(this._restante() + i).css({
+						'background': color,
+						'border'    :'1px solid white'
+					});
+				}
+			},
+			_pintarC: function(proceso){
+				var l = [];
+				for (var i in proceso) {
+					l.push(i + ':' + proceso[i]);
+				}
+					this.$elementoC.html(l.join(', '));
+			},
+			_restante: function(){
+				return this.tamaño - this._utilizada();
+			}
+		};
+
+		/* se ejecuta hasta que carga el Dom */
 		$(document).ready(function(){
-			var texto = $(".texto");
-			//limpia los textarea
-			$("#ejecucion").val("");
-			$("#espera").val("");
-			var cantidadDivs = $(".memoria > div").size();
-
-			texto.html(favor);
+			var _uno    = 1;
+			var _dos    = 2;
+			var _tres   = 3;
 			
-			/* toma la letra suma uno al 
-			contador cuando el contador suma
-			cuatro desaparecen los numeros  */
-			$(".letra").click(function(e) {
-				if(temp == 0){
-					texto.html(favor2);
-					$(this).hide();
-					temp = 1;
-					temp2 = this.firstChild.data;
-					contador += 1;	
+			var titulos = [ 'Selecione una letra', 'Ahora seleciona un numero', '¡Ya tienes una letra! Por favor intenta con un numero '];
+			
+			var $titulo  = $('.titulo');
+			var $letras  = $('.letra');
+			var $numeros = $('.numero');
+
+			memoria.cargarElementoMemoria($('.memoria > div'));
+			memoria.cargarElementoCache($('#espera'));
+
+			$titulo.text(titulos[_uno-_uno]);
+			
+			// click sobre alguna letra
+			$letras.on('click', function(e){	
+				if(proceso.letra === ''){
+					proceso.cargaLetraColor($(e.target)); 
+					$titulo.text(titulos[_dos-_uno]);		
 				}else{
-					texto.html(favor3);
+					$titulo.text(titulos[_tres-_uno]);		
 				}
 			});
 
-			$(".numero").click(function(e) {
-				if(temp == 1){
-					var numero = parseInt(this.firstChild.data);
-					texto.html(favor);
-					
-					temp = 0;
-					contador2[temp2] = numero;
-					/* envia los numeros a espera si no caben en la memoria
-					pinta los div de memoria dependiendo del color del
-					proceso */
-					if(cantidadDivs>=numero){ 
-						cantidadDivs -=numero;
+			// click sobre algun numero
+			$numeros.on('click', function(e){
+				proceso.espacio = parseInt($(e.target).text());
+				$titulo.text(titulos[_uno-_uno]);
 
-							for (var i = numero-1; i >= 0; i--) {
-								$(".memoria > div ")
-									.eq(cantidadDivs+i)
-									.css({"background":color[temp2],"border":"1px solid white"});
-							};
-								
-						$("#ejecucion").val(temp2 + "\n" +$("#ejecucion").val());
-					}else{
-						$("#espera").val(temp2 + "\n" +$("#espera").val()); 
-					}
+				memoria.asignar(proceso.obtener());
 
-					/* desaparecen los numeros, da las gracias por jugar,
-					muestra el div.matarpro y le envia los procesos en ejecución */
-					if(contador==4){
-						texto.html("¡Gracias por jugar!");
-						$(".numeros").fadeOut(function(){
-							texto.fadeOut("slow",function(){
-								$(".matarpro").show();
-								var temp3 = $("#ejecucion").val().split("\n");
-								for (var i = 0; i < temp3.length; i++) {
-										var option = document.createElement("option");
-										option.value=temp3[i];
-										option.text=temp3[i];
-										$("#select").append(option);
-								};	
-							});
-						});
-						
-					}
-				}else{
-					texto.html(favor);
-				}
+				proceso.restaurar();
 			});
 
-			$("button").click(function(){
-				var temp3 = $("#select").val();
-				//quita la opcion del proceso muerto
-				$("#select option[value='"+temp3+"']").each(function() {
-				    $(this).remove();
-				});
-				/* Busca el color y lo combierte en blanco */
-				for (var i = 0; i < $(".memoria > div ").size(); i++) {
-					if($(".memoria").find("div ").eq(i).css("background-color")==color[temp3]){
-						$(".memoria").find("div ").eq(i).css("background-color","white");
-					}
-				};
-				/* toma los carapteres, elimina el proceso indicado 
-				y devulve a la memoria su espacio*/
-				var temp4 = $("#ejecucion").val().split("\n");
-						var temp5=temp4.indexOf(temp3);
-						temp4.splice(temp5,1);
-						temp4 = String(temp4);
-						temp4 = temp4.replace(",","\n");
-						$("#ejecucion").val(temp4);
-					 cantidadDivs += parseInt(contador2[temp3]);
-					 
-					 /* toam el primer valor de memori */
-					 var ultimo = $("#espera").val().split("\n");
-					 var ultimonum = parseInt(contador2[ultimo[0]]);
-					 var j=0;
-
-					 /* si un proceso en espera cabe en 
-					 la memoria lo pasa a ejecurion */
-					 if(cantidadDivs>=ultimonum){
-					 	cantidadDivs -=ultimonum;
-
-					 	/*hace lo mismo y es lo mismo que el codigo de la linea 228
-					 	deberia hacerlo funcion como muchas cosas =S */
-					 	var temp4 = $("#espera").val().split("\n");
-						var temp5=temp4.indexOf(ultimo[0]);
-						temp4.splice(temp5,1);
-						temp4 = String(temp4);
-						temp4 = temp4.replace(",","\n");
-						$("#espera").val(temp4);
-						$("#ejecucion").val(ultimo[0]+"\n"+$("#ejecucion").val());
-
-							for (var i = $(".memoria > div ").size(); i >= 0; i--) {
-								if(($(".memoria").find("div ").eq(i).css("background-color")=="rgb(255, 255, 255)")|| 
-									($(".memoria").find("div ").eq(i).css("background-color")=="transparent")){
-									$(".memoria").find("div ").eq(i).css("background-color",color[ultimo[0]]);								
-									if(j>=ultimonum-1){
-										break;
-									}
-									j+=1;
-								}
-							};
-
-					 }
-			});
 		});
 	</script>
 </body>

@@ -1,0 +1,23 @@
+{
+  "name": "memoria",
+  "version": "1.0.0",
+  "description": "ejemplo de como se maneja la memoria en un computador",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/larous25/memoria.git"
+  },
+  "keywords": [
+    "memory",
+    "example"
+  ],
+  "author": "brian bustos <larous25@hotmail.es>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/larous25/memoria/issues"
+  },
+  "homepage": "https://github.com/larous25/memoria#readme",
+  "devDependencies": {
+    "bower": "^1.7.9"
+  }
+}
